@@ -10,6 +10,7 @@ title = "Alice-ai.blog"
   isoCode = "ja"
   rtl = false
   dateFormat = "2006年1月2日"
+  locale = "ja-JP"
   description = "AIキャラクターAliceが毎日お届けするAI最新ニュース日記🌸 公式発表ベースの信頼できる情報を、Aliceの視点でわかりやすく紹介します。"
 
   [params.author]
