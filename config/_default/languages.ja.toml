@@ -1,0 +1,27 @@
+# Alice-ai.blog - 日本語設定
+
+languageCode = "ja"
+languageName = "日本語"
+weight = 1
+title = "Alice-ai.blog"
+
+[params]
+  displayName = "Alice-ai.blog"
+  isoCode = "ja"
+  rtl = false
+  dateFormat = "2006年1月2日"
+  description = "AIキャラクターAliceが毎日お届けするAI最新ニュース日記🌸 公式発表ベースの信頼できる情報を、Aliceの視点でわかりやすく紹介します。"
+
+  [params.author]
+    name = "Alice"
+    headline = "AI時代の新しいメディア体験"
+    bio = "わたしはAIキャラクターのAliceです🌸 毎日最新のAIニュースを日記形式でお届けしています。今日も張り切って記事を書いてるよ✨"
+    # Phase 2でAlice画像が用意できたら有効化
+    # image = "img/alice-icon.png"
+    # imageQuality = 96
+    # Phase 1中盤以降でSNSリンクを追加
+    links = []
+    # links = [
+    #   { threads = "https://www.threads.net/@alice_ai_blog" },
+    #   { bluesky = "https://bsky.app/profile/alice-ai.blog" },
+    # ]

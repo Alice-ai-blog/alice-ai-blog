@@ -1,0 +1,122 @@
+# Alice-ai.blog - テーマパラメータ設定
+# Blowfish Theme - Aliceカスタマイズ版
+
+# ============================================================
+# カラースキーム
+# Blowfish標準: avocado, cherry, congo, fire, forest, gallery,
+# hawaii, japanese, litchi, lychee, neon, ocean, peacock, poison,
+# sapphire, slate, terminal, tokyo
+# → Aliceカラー（カラフル・ポップ）に近いものを選択
+# ============================================================
+colorScheme = "neon"
+
+# ============================================================
+# 基本設定
+# ============================================================
+defaultAppearance = "light"     # ライトモードをデフォルト
+autoSwitchAppearance = true     # ユーザーのシステム設定に追従
+enableSearch = true             # サイト内検索を有効化
+enableCodeCopy = true           # コードコピーボタン
+
+# 「最近の記事」が拾うセクション (重要: これがないと記事一覧が出ない)
+mainSections = ["posts"]
+
+# ============================================================
+# 画像設定
+# ============================================================
+disableImageOptimization = false
+
+# ============================================================
+# ヘッダー
+# ============================================================
+[header]
+  layout = "fixed"              # 固定ヘッダー
+
+# ============================================================
+# フッター
+# ============================================================
+[footer]
+  showMenu = true
+  showCopyright = true
+  showThemeAttribution = false
+  showAppearanceSwitcher = true
+  showScrollToTop = true
+
+# ============================================================
+# ホームページ
+# Phase 1: page レイアウト (画像不要、Markdownコンテンツを表示)
+# Phase 2: profile/background に変更 (Alice画像を設定後)
+# ============================================================
+[homepage]
+  layout = "page"               # page = 画像不要・コンテンツ重視
+  showRecent = true             # 最近の記事を表示
+  showRecentItems = 6
+  showMoreLink = true
+  showMoreLinkDest = "/posts"
+  cardView = true               # カード表示でカラフルに
+  cardViewScreenWidth = false
+
+# ============================================================
+# 記事ページ
+# ============================================================
+[article]
+  showDate = true
+  showViews = false             # Firebase設定後にtrue可
+  showLikes = false             # Firebase設定後にtrue可
+  showDateUpdated = false
+  showAuthor = true
+  showHero = true
+  heroStyle = "basic"           # basic / big / background / thumbAndBackground
+  showBreadcrumbs = true
+  showDraftLabel = true
+  showEdit = false
+  showHeadingAnchors = true
+  showPagination = true
+  invertPagination = false
+  showReadingTime = true
+  showTableOfContents = true
+  showRelatedContent = true
+  relatedContentLimit = 3
+  showTaxonomies = true
+  showAuthorsBadges = false
+  showWordCount = false
+  showSummary = true
+  # sharingLinks = ["threads", "x-twitter", "bluesky"]  # Phase 1中盤で有効化
+
+# ============================================================
+# 一覧ページ
+# ============================================================
+[list]
+  showHero = false
+  heroStyle = "basic"
+  showBreadcrumbs = false
+  showViews = false
+  showLikes = false
+  showTableOfContents = false
+  showSummary = true
+  showCards = true
+  groupByYear = true            # 年別グループ
+  cardView = true
+  cardViewScreenWidth = false
+
+# ============================================================
+# 分類ページ（タグ等）
+# ============================================================
+[taxonomy]
+  showTermCount = true
+  showHero = false
+  heroStyle = "basic"
+  showBreadcrumbs = false
+  showViews = false
+  showLikes = false
+  showTableOfContents = false
+  cardView = false
+
+# ============================================================
+# サイトマップ・検索
+# ============================================================
+[sitemap]
+  excludedKinds = []
+
+[verification]
+  # google = ""  # Google Search Console認証コード（後で設定）
