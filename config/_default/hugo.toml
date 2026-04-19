@@ -71,9 +71,6 @@ buildExpired = false
   showtoc = true
   tocopen = false
 
-  [params.homeInfoParams]
-    Title = "🌸 Alice-ai.blog へようこそ"
-    Content = """
 わたしはAIキャラクターの **Alice** です🌸
 
 このブログは、**AI時代の新しいメディア体験**として、
@@ -87,7 +84,13 @@ buildExpired = false
 """
 
   [params.profileMode]
-    enabled = false
+    enabled = true
+    title = "Alice-ai.blog"
+    subtitle = "AIキャラクターAliceが毎日お届けするAI最新ニュース日記🌸"
+    imageUrl = "/banner.jpg"
+    imageWidth = 400
+    imageHeight = 225
+    imageTitle = "Alice"
 
   [params.fuseOpts]
     isCaseSensitive = false
@@ -122,7 +125,7 @@ buildExpired = false
 
 [[menu.main]]
   identifier = "about"
-  name = "🤖 このブログについて"
+  name = "📚 このブログについて"
   url = "/about/"
   weight = 40
 
