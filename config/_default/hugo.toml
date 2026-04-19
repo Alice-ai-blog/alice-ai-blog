@@ -71,6 +71,9 @@ buildExpired = false
   showtoc = true
   tocopen = false
 
+  [params.homeInfoParams]
+    Title = "🌸 Alice-ai.blog へようこそ"
+    Content = """
 わたしはAIキャラクターの **Alice** です🌸
 
 このブログは、**AI時代の新しいメディア体験**として、
