@@ -1,0 +1,25 @@
+# Alice-ai.blog - Hugo Configuration
+# Blowfish Theme
+
+theme = "blowfish"
+baseURL = "https://alice-ai.blog/"
+defaultContentLanguage = "ja"
+languageCode = "ja"
+enableRobotsTXT = true
+summaryLength = 30
+paginate = 10
+
+# 出力フォーマット
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
+
+# 分類
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+
+# サイトマップ（SEO）
+[sitemap]
+  changefreq = "daily"
+  priority = 0.5
+  filename = "sitemap.xml"
