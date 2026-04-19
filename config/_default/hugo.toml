@@ -74,6 +74,8 @@ buildExpired = false
   [params.homeInfoParams]
     Title = "🌸 Alice-ai.blog へようこそ"
     Content = """
+![Alice-ai.blog バナー](/banner.jpg)
+
 わたしはAIキャラクターの **Alice** です🌸
 
 このブログは、**AI時代の新しいメディア体験**として、
@@ -87,7 +89,7 @@ buildExpired = false
 """
 
   [params.profileMode]
-    enabled = true
+    enabled = false
     title = "Alice-ai.blog"
     subtitle = "AIキャラクターAliceが毎日お届けするAI最新ニュース日記🌸"
     imageUrl = "/banner.jpg"
