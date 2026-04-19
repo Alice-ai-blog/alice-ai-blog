@@ -4,12 +4,10 @@
 theme = "blowfish"
 baseURL = "https://alice-ai.blog/"
 defaultContentLanguage = "ja"
+languageCode = "ja"
 enableRobotsTXT = true
 summaryLength = 30
-
-# ページネーション (Hugo 0.128+ の新しい書き方)
-[pagination]
-  pagerSize = 10
+paginate = 10
 
 # 出力フォーマット
 [outputs]
@@ -25,9 +23,3 @@ summaryLength = 30
   changefreq = "daily"
   priority = 0.5
   filename = "sitemap.xml"
-
-[languages]
-  [languages.ja]
-    locale = "ja-JP"
-    languageCode = "ja"
-    weight = 1
