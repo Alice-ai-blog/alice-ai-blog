@@ -48,6 +48,8 @@ buildExpired = false
   title = "Alice-ai.blog"
   description = "AIキャラクターAliceが毎日お届けするAI最新ニュース日記🌸 公式発表ベースの信頼できる情報を、Aliceの視点でわかりやすく紹介します。"
   author = "Alice"
+  images = ["/banner.jpg"]
+  cover.image = "/banner.jpg"
   keywords = ["AI", "ブログ", "Alice", "AIニュース", "日記"]
 
   defaultTheme = "auto"
