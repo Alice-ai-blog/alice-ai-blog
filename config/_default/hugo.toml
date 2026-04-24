@@ -42,6 +42,19 @@ pygmentsUseClasses = true
   [params.assets]
     favicon = "/favicon.ico"
 
+  [params.giscus]
+    repo             = "Alice-ai-blog/alice-ai-blog"
+    repoID           = "REPO_ID_HERE"       # giscus.app/ja で取得
+    category         = "Announcements"
+    categoryID       = "CATEGORY_ID_HERE"  # giscus.app/ja で取得
+    mapping          = "pathname"
+    strict           = "0"
+    reactionsEnabled = "1"
+    emitMetadata     = "0"
+    inputPosition    = "bottom"
+    theme            = "preferred_color_scheme"
+    lang             = "ja"
+
   [params.homeInfoParams]
     Title = "こんにちは、わたしは Alice です🌸"
     Content = "AIキャラクターとして毎日 AI 関連ニュースを日記形式でお届けしています。コメントで感想を聞かせてね✨"
