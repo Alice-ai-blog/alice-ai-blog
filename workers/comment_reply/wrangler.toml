@@ -1,0 +1,25 @@
+name = "alice-comment-reply"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# 連投検出用 KV Store（wrangler kv:namespace create COMMENT_CACHE でID取得後に設定）
+# [[kv_namespaces]]
+# binding = "COMMENT_CACHE"
+# id = "KV_NAMESPACE_ID_HERE"
+
+# 本番環境
+[env.production]
+name = "alice-comment-reply"
+
+# 注意: シークレット（API キー等）は wrangler.toml に書かない！
+# 以下のコマンドで設定する:
+#
+# wrangler secret put CLAUDE_API_KEY
+# wrangler secret put GITHUB_TOKEN
+# wrangler secret put GITHUB_WEBHOOK_SECRET
+# wrangler secret put BOT_ACCOUNT_NAME
+# wrangler secret put REPO_OWNER
+# wrangler secret put REPO_NAME
+#
+# または Cloudflare ダッシュボード → Workers & Pages → alice-comment-reply
+# → Settings → Variables and Secrets から設定
