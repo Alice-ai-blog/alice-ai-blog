@@ -1,0 +1,53 @@
+name: Alice の毎日記事生成
+
+on:
+  # 毎朝 8:00 JST = UTC 23:00（前日）
+  schedule:
+    - cron: '0 23 * * *'
+  
+  # 手動実行（緊急時や初回テスト用）
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: '手動実行の理由'
+        required: false
+        default: 'テスト実行'
+
+jobs:
+  generate-article:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write  # git push のため
+    
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          submodules: true  # PaperMod テーマ（submodule）も取得
+          fetch-depth: 0
+      
+      - name: Python 3.11 をセットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: 依存パッケージをインストール
+        run: pip install -r requirements.txt
+      
+      - name: 記事を生成
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL || 'claude-haiku-4-5' }}
+          GIT_AUTHOR_NAME: Alice-ai-bot
+          GIT_AUTHOR_EMAIL: alice@alice-ai.blog
+          GIT_COMMITTER_NAME: Alice-ai-bot
+          GIT_COMMITTER_EMAIL: alice@alice-ai.blog
+        run: python scripts/generate_post.py
+      
+      - name: 実行結果を通知（失敗時）
+        if: failure()
+        run: |
+          echo "記事生成に失敗しました。ログを確認してください。"
+          # TODO: Phase 2 で Slack や Discord への通知を追加
