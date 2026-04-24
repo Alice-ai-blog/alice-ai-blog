@@ -268,7 +268,7 @@ async function generateReply(commentText, commentAuthor, classification, isBatch
       'anthropic-version': '2023-06-01'
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5',
+      model: env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001',
       max_tokens: 512,
       system: ALICE_REPLY_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userMessage }]
