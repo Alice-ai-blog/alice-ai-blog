@@ -1,6 +1,6 @@
 name = "alice-comment-reply"
 main = "src/index.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-11-01"
 
 # 連投検出用 KV Store（wrangler kv:namespace create COMMENT_CACHE でID取得後に設定）
 # [[kv_namespaces]]
@@ -20,6 +20,9 @@ name = "alice-comment-reply"
 # wrangler secret put BOT_ACCOUNT_NAME
 # wrangler secret put REPO_OWNER
 # wrangler secret put REPO_NAME
+#
+# オプション（変数として設定、デフォルト: claude-haiku-4-5-20251001）:
+# wrangler secret put CLAUDE_MODEL
 #
 # または Cloudflare ダッシュボード → Workers & Pages → alice-comment-reply
 # → Settings → Variables and Secrets から設定
