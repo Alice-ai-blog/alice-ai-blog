@@ -23,15 +23,11 @@ import subprocess
 import time
 from datetime import datetime, timezone, timedelta
 import anthropic
+from config import CLAUDE_MODEL, MAX_TOKENS, ARTICLE_MIN_CHARS, API_TIMEOUT, MAX_RETRIES
 
 # ============================================================
 # 設定
 # ============================================================
-CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-haiku-4-5")
-MAX_TOKENS = 4096
-ARTICLE_MIN_CHARS = 2000
-API_TIMEOUT = 30
-MAX_RETRIES = 2
 DRY_RUN = os.getenv("DRY_RUN", "false").lower() == "true"
 JST = timezone(timedelta(hours=9))
 
