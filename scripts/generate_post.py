@@ -23,6 +23,8 @@ import subprocess
 import time
 from datetime import datetime, timezone, timedelta
 import anthropic
+
+sys.path.insert(0, os.path.dirname(__file__))
 from config import CLAUDE_MODEL, MAX_TOKENS, ARTICLE_MIN_CHARS, API_TIMEOUT, MAX_RETRIES
 
 # ============================================================
