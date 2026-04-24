@@ -1,0 +1,13 @@
+{
+  "name": "alice-comment-reply",
+  "version": "1.0.0",
+  "description": "Alice-ai.blog リアルタイムコメント返信 Cloudflare Workers",
+  "main": "src/index.js",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
