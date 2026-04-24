@@ -1,0 +1,23 @@
+# Hugo
+public/
+resources/_gen/
+.hugo_build.lock
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Env / Secrets
+.env
+.env.*
+*.env
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
