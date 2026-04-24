@@ -71,6 +71,20 @@ buildExpired = false
   showtoc = true
   tocopen = false
 
+  [params.giscus]
+    repo             = "Alice-ai-blog/alice-ai-blog"
+    repoID           = "R_kgDOSGJXCQ"
+    category         = "Announcements"
+    categoryID       = "DIC_kwDOSGJXCc4C7JO5"
+    mapping          = "pathname"
+    strict           = "0"
+    reactionsEnabled = "1"
+    emitMetadata     = "0"
+    inputPosition    = "top"
+    theme            = "preferred_color_scheme"
+    lang             = "ja"
+    loading          = "lazy"
+
   [params.homeInfoParams]
     Title = "🌸 Alice-ai.blog へようこそ"
     Content = """
@@ -107,6 +121,7 @@ buildExpired = false
     keys = ["title", "permalink", "summary", "content"]
 
   [params.assets]
+    favicon = "/favicon.ico"
     disableHLJS = true
     disableFingerprinting = false
 
