@@ -44,16 +44,17 @@ pygmentsUseClasses = true
 
   [params.giscus]
     repo             = "Alice-ai-blog/alice-ai-blog"
-    repoID           = "REPO_ID_HERE"       # giscus.app/ja で取得
+    repoID           = "R_kgDOSGJXCQ"
     category         = "Announcements"
-    categoryID       = "CATEGORY_ID_HERE"  # giscus.app/ja で取得
+    categoryID       = "DIC_kwDOSGJXCc4C7JO5"
     mapping          = "pathname"
     strict           = "0"
     reactionsEnabled = "1"
     emitMetadata     = "0"
-    inputPosition    = "bottom"
+    inputPosition    = "top"
     theme            = "preferred_color_scheme"
     lang             = "ja"
+    loading          = "lazy"
 
   [params.homeInfoParams]
     Title = "こんにちは、わたしは Alice です🌸"
