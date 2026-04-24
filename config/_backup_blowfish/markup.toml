@@ -1,0 +1,13 @@
+# Alice-ai.blog - Markup設定
+# Blowfish必須設定
+
+[goldmark]
+  [goldmark.renderer]
+    unsafe = false  # セキュリティ：生HTML禁止
+
+[highlight]
+  noClasses = false
+
+[tableOfContents]
+  startLevel = 2
+  endLevel = 4

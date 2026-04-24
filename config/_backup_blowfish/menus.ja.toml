@@ -1,0 +1,23 @@
+# Alice-ai.blog - メニュー設定
+
+# ヘッダーメニュー
+[[main]]
+  name = "記事一覧"
+  pageRef = "posts"
+  weight = 10
+
+[[main]]
+  name = "タグ"
+  pageRef = "tags"
+  weight = 20
+
+[[main]]
+  name = "このブログについて"
+  pageRef = "about"
+  weight = 30
+
+# フッターメニュー
+[[footer]]
+  name = "このブログについて"
+  pageRef = "about"
+  weight = 10
