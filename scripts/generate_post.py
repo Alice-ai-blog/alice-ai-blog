@@ -44,7 +44,14 @@ MAX_POSTED_TOPICS = 30
 # ============================================================
 TOPIC_DISCOVERY_SYSTEM_PROMPT = """
 あなたは AI ニュースリサーチャーです。
-今日の最新 AI ニュースを web_search で検索し、ブログ記事に適したトピックを 2〜3 本選んでください。
+過去3日間の最新 AI ニュースを web_search で検索し、ブログ記事に適したトピックを 2〜3 本選んでください。
+今日だけでなく、昨日・一昨日のニュースも対象です。
+
+## 検索・選定の優先順位
+1. **今日のニュース**を最優先で探す
+2. 今日が少なければ**昨日のニュース**も対象にする
+3. それでも不足なら**2〜3日前のニュース**まで遡る
+4. より新しいニュースが優先。古いニュースは新しいものがないときだけ使う
 
 ## 出力形式（JSON）
 {
@@ -55,12 +62,14 @@ TOPIC_DISCOVERY_SYSTEM_PROMPT = """
       "summary": "このトピックの詳細な要約（400〜600字）。記事執筆に十分な背景・事実・数字を含めること",
       "key_facts": ["重要な事実や数字1", "重要な事実2", "重要な事実3"],
       "source_url": "元記事の URL",
-      "source_title": "元記事のタイトル"
+      "source_title": "元記事のタイトル",
+      "news_date": "ニュースの日付（YYYY-MM-DD 形式）"
     }
   ]
 }
 
 topics は 2〜3 件。それぞれ異なるカテゴリから選ぶこと（例: モデルリリース・研究発表・サービス発表）。
+過去3日間で何も見つからない場合は topics を空配列 [] で返してください。
 
 ## 重要: 出力形式について
 必ず有効な JSON のみを返してください。
@@ -181,6 +190,10 @@ def save_posted_topics(new_topics: list):
 # Step 1: トピック探索（web_search あり）
 # ============================================================
 def get_discovery_prompt(today_str: str, posted_topics: list) -> str:
+    now = datetime.now(JST)
+    yesterday_str = (now - timedelta(days=1)).strftime("%Y年%m月%d日")
+    two_days_ago_str = (now - timedelta(days=2)).strftime("%Y年%m月%d日")
+
     avoid_section = ""
     if posted_topics:
         titles = "\n".join(f"- {t['title']}" for t in posted_topics)
@@ -191,21 +204,27 @@ def get_discovery_prompt(today_str: str, posted_topics: list) -> str:
 """
     return f"""
 今日は {today_str} です。
+
+## 検索対象期間（過去3日間）
+- 最優先: {today_str} のニュース
+- 次点:   {yesterday_str} のニュース
+- 最後:   {two_days_ago_str} のニュース
+より新しいニュースを優先し、古い日付のものは新しいニュースが見つからない場合のみ使ってください。
 {avoid_section}
-AI 関連の最新ニュースを検索して、異なるカテゴリから 2〜3 本のトピックを選んでください。
+上記の期間で AI 関連ニュースを web_search で検索し、異なるカテゴリから 2〜3 本のトピックを選んでください。
 
 ## 条件
 - 公式発表・査読論文・公的機関発表のみ
 - リーク・噂・未確認情報は除外
 - 2〜3 本はそれぞれ異なるテーマ（例: モデルリリース・研究・サービス）
-- 今日または直近数日以内の情報
+- 過去3日間で何も見つからなければ topics を空配列 [] で返す
 
 指定の JSON 形式で返してください。
 """
 
 
 def discover_topics(today_str: str, posted_topics: list) -> list:
-    """web_search で今日のトピックを 2〜3 本探す。"""
+    """web_search で過去3日間のトピックを 2〜3 本探す。見つからなければ [] を返す。"""
     client = anthropic.Anthropic(
         api_key=os.environ["ANTHROPIC_API_KEY"],
         timeout=API_TIMEOUT,
