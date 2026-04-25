@@ -371,14 +371,13 @@ export default {
       return new Response('OK - Skipped', { status: 200 });
     }
 
-    // ② Bot 無限ループ防止
-    const senderLogin = payload.sender?.login || '';
-    if (senderLogin === env.BOT_ACCOUNT_NAME || senderLogin.endsWith('[bot]')) {
-      console.log(`[Loop Prevention] Bot のコメントをスキップ: ${senderLogin}`);
+    const rawComment = payload.comment?.body || '';
+
+    // ② Bot 無限ループ防止（Alice 自身の返信には末尾マーカーが含まれる）
+    if (rawComment.includes('<!-- alice-ai-bot -->')) {
+      console.log('[Loop Prevention] Alice の返信をスキップ');
       return new Response('OK - Bot skipped', { status: 200 });
     }
-
-    const rawComment = payload.comment?.body || '';
     const commentAuthor = payload.comment?.author?.login || payload.sender?.login || 'ゲスト';
     const discussionId = payload.discussion?.node_id || '';
 
@@ -463,8 +462,8 @@ export default {
         return new Response('OK - Output validation failed', { status: 200 });
       }
 
-      // ⑨ GitHub Discussions に返信投稿
-      await postReply(discussionId, reply, env);
+      // ⑨ GitHub Discussions に返信投稿（末尾にループ防止マーカーを付与）
+      await postReply(discussionId, reply + '\n<!-- alice-ai-bot -->', env);
       console.log(`[Success] 返信を投稿しました: ${commentAuthor}`);
 
       return new Response('OK', { status: 200 });
