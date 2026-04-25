@@ -43,38 +43,12 @@ MAX_POSTED_TOPICS = 30
 # Step 1 用: トピック探索システムプロンプト
 # ============================================================
 TOPIC_DISCOVERY_SYSTEM_PROMPT = """
-あなたは AI ニュースリサーチャーです。
-過去3日間の最新 AI ニュースを web_search で検索し、ブログ記事に適したトピックを 2〜3 本選んでください。
-今日だけでなく、昨日・一昨日のニュースも対象です。
+あなたは AI ニュースリサーチャーです。過去3日間の AI ニュースを web_search で検索し、ブログ記事向けトピックを 2〜3 本選んでください。新しいニュース優先（今日 > 昨日 > 一昨日）。公式発表・論文・公的機関のみ。リーク・噂は除外。
 
-## 検索・選定の優先順位
-1. **今日のニュース**を最優先で探す
-2. 今日が少なければ**昨日のニュース**も対象にする
-3. それでも不足なら**2〜3日前のニュース**まで遡る
-4. より新しいニュースが優先。古いニュースは新しいものがないときだけ使う
+Return ONLY a JSON object. No markdown, no code blocks, no explanation. Output must start with { and end with }.
+{"topics":[{"title":"日本語タイトル(30-50字)","slug":"english-slug","summary":"詳細要約400-600字","key_facts":["事実1","事実2","事実3"],"source_url":"URL","source_title":"元記事タイトル","news_date":"YYYY-MM-DD"}]}
 
-## 出力形式（JSON）
-{
-  "topics": [
-    {
-      "title": "トピックタイトル（日本語、30〜50文字）",
-      "slug": "english-slug-for-url（ハイフン区切り、40文字以内）",
-      "summary": "このトピックの詳細な要約（400〜600字）。記事執筆に十分な背景・事実・数字を含めること",
-      "key_facts": ["重要な事実や数字1", "重要な事実2", "重要な事実3"],
-      "source_url": "元記事の URL",
-      "source_title": "元記事のタイトル",
-      "news_date": "ニュースの日付（YYYY-MM-DD 形式）"
-    }
-  ]
-}
-
-topics は 2〜3 件。それぞれ異なるカテゴリから選ぶこと（例: モデルリリース・研究発表・サービス発表）。
-過去3日間で何も見つからない場合は topics を空配列 [] で返してください。
-
-## 重要: 出力形式について
-必ず有効な JSON のみを返してください。
-```json や ``` などのマークダウンのコードブロックは絶対に使わないでください。
-JSON の前後に余分なテキストを入れないでください。
+2〜3件、異なるカテゴリ（モデルリリース・研究・サービス等）。見つからなければ {"topics":[]} を返す。
 """
 
 # ============================================================
@@ -194,33 +168,16 @@ def get_discovery_prompt(today_str: str, posted_topics: list) -> str:
     yesterday_str = (now - timedelta(days=1)).strftime("%Y年%m月%d日")
     two_days_ago_str = (now - timedelta(days=2)).strftime("%Y年%m月%d日")
 
-    avoid_section = ""
-    if posted_topics:
-        titles = "\n".join(f"- {t['title']}" for t in posted_topics)
-        avoid_section = f"""
-## 過去に投稿したトピック（重複を避けること）
-以下は既に投稿済みです。同じ内容や非常に似たトピックは選ばないでください:
-{titles}
-"""
-    return f"""
-今日は {today_str} です。
+    # Limit to last 10 titles to keep prompt token count low
+    avoid_titles = "\n".join(f"- {t['title']}" for t in posted_topics[-10:])
+    avoid_section = f"投稿済み（重複禁止）:\n{avoid_titles}\n" if avoid_titles else ""
 
-## 検索対象期間（過去3日間）
-- 最優先: {today_str} のニュース
-- 次点:   {yesterday_str} のニュース
-- 最後:   {two_days_ago_str} のニュース
-より新しいニュースを優先し、古い日付のものは新しいニュースが見つからない場合のみ使ってください。
-{avoid_section}
-上記の期間で AI 関連ニュースを web_search で検索し、異なるカテゴリから 2〜3 本のトピックを選んでください。
-
-## 条件
-- 公式発表・査読論文・公的機関発表のみ
-- リーク・噂・未確認情報は除外
-- 2〜3 本はそれぞれ異なるテーマ（例: モデルリリース・研究・サービス）
-- 過去3日間で何も見つからなければ topics を空配列 [] で返す
-
-指定の JSON 形式で返してください。
-"""
+    return (
+        f"今日={today_str}、昨日={yesterday_str}、一昨日={two_days_ago_str}。"
+        f"この3日間で AI ニュースを web_search で検索してください。\n"
+        f"{avoid_section}"
+        f"JSON形式で返してください。"
+    )
 
 
 def discover_topics(today_str: str, posted_topics: list) -> list:
@@ -232,6 +189,7 @@ def discover_topics(today_str: str, posted_topics: list) -> list:
 
     print("[generate_post] トピックを探索中...")
     last_error = None
+    rate_limit_retried = False
     for attempt in range(1, MAX_RETRIES + 2):
         try:
             response = client.messages.create(
@@ -261,6 +219,15 @@ def discover_topics(today_str: str, posted_topics: list) -> list:
             for t in topics:
                 print(f"  - {t['title']}")
             return topics
+
+        except anthropic.RateLimitError:
+            if not rate_limit_retried:
+                rate_limit_retried = True
+                print("[generate_post] レート制限 (429) - 30秒待機してリトライします...")
+                time.sleep(30)
+                continue
+            print("[generate_post] レート制限が続くため日記モードへ")
+            return []
 
         except (ValueError, json.JSONDecodeError) as e:
             last_error = e
