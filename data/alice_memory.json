@@ -3,5 +3,22 @@
   "_updated": "2026-04-19",
   "reader_requests": [],
   "popular_topics": [],
-  "regular_readers": {}
+  "regular_readers": {},
+  "posted_topics": [
+    {
+      "title": "OpenAI、GPT-5.5をAPI提供開始——コーディング・計算研究が大躍進",
+      "slug": "openai-gpt-5-5-api-launch",
+      "date": "2026-04-25"
+    },
+    {
+      "title": "DeepSeek、次世代フラッグシップモデル『V4』をプレビュー公開——米国モデルに追いつく",
+      "slug": "deepseek-v4-preview-release",
+      "date": "2026-04-25"
+    },
+    {
+      "title": "Google、TPU第8世代『8t・8i』を発表——エージェント時代に向けた新チップ戦略",
+      "slug": "google-tpu-8th-generation",
+      "date": "2026-04-25"
+    }
+  ]
 }
