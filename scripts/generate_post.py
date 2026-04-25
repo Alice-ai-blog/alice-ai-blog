@@ -32,6 +32,8 @@ from config import CLAUDE_MODEL, MAX_TOKENS, ARTICLE_MIN_CHARS, API_TIMEOUT, MAX
 # ============================================================
 DRY_RUN = os.getenv("DRY_RUN", "false").lower() == "true"
 JST = timezone(timedelta(hours=9))
+MEMORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'alice_memory.json')
+MAX_POSTED_TOPICS = 30
 
 # ============================================================
 # Alice のシステムプロンプト（記事生成用）
@@ -77,12 +79,54 @@ content の末尾には必ず以下を追加すること:
 """
 
 # ============================================================
+# 投稿済みトピック読み込み / 保存
+# ============================================================
+def load_posted_topics() -> list:
+    try:
+        with open(MEMORY_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get("posted_topics", [])
+    except Exception:
+        return []
+
+
+def save_posted_topic(title: str, slug: str):
+    try:
+        with open(MEMORY_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        data = {}
+
+    topics = data.get("posted_topics", [])
+    topics.append({
+        "title": title,
+        "slug": slug,
+        "date": datetime.now(JST).strftime("%Y-%m-%d"),
+    })
+    data["posted_topics"] = topics[-MAX_POSTED_TOPICS:]
+
+    with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    print(f"[generate_post] alice_memory.json を更新しました（投稿済み: {len(data['posted_topics'])} 件）")
+
+
+# ============================================================
 # ニュース収集プロンプト
 # ============================================================
-def get_news_search_prompt(today_str: str) -> str:
+def get_news_search_prompt(today_str: str, posted_topics: list) -> str:
+    avoid_section = ""
+    if posted_topics:
+        titles = "\n".join(f"- {t['title']}" for t in posted_topics)
+        avoid_section = f"""
+## 過去に投稿したトピック（重複を避けること）
+以下のタイトルの記事は既に投稿済みです。同じ内容や非常に似たトピックは選ばないでください:
+{titles}
+"""
+
     return f"""
 今日は {today_str} です。
-
+{avoid_section}
 以下の条件でAI関連の最新ニュースを検索して、最も興味深いトピックを1つ選んでください。
 
 ## 検索条件
@@ -113,9 +157,11 @@ def generate_article() -> dict:
 
     now_jst = datetime.now(JST)
     today_str = now_jst.strftime("%Y年%m月%d日")
+    posted_topics = load_posted_topics()
 
     print(f"[generate_post] {today_str} の記事生成を開始します...")
     print(f"[generate_post] モデル: {CLAUDE_MODEL}")
+    print(f"[generate_post] 投稿済みトピック数: {len(posted_topics)}")
 
     last_error = None
     for attempt in range(1, MAX_RETRIES + 2):  # 1 + retry 2 = 最大3回
@@ -133,7 +179,7 @@ def generate_article() -> dict:
                 messages=[
                     {
                         "role": "user",
-                        "content": get_news_search_prompt(today_str)
+                        "content": get_news_search_prompt(today_str, posted_topics)
                     }
                 ]
             )
@@ -217,7 +263,7 @@ def git_push(file_path: str, title: str):
     try:
         subprocess.run(["git", "config", "user.name", "Alice-ai-bot"], check=True)
         subprocess.run(["git", "config", "user.email", "alice@alice-ai.blog"], check=True)
-        subprocess.run(["git", "add", file_path], check=True)
+        subprocess.run(["git", "add", file_path, "data/alice_memory.json"], check=True)
         subprocess.run(
             ["git", "commit", "-m", f"Alice の今日の記事: {title}"],
             check=True
@@ -254,6 +300,7 @@ def main():
             return
 
         file_path = save_article(article)
+        save_posted_topic(article["title"], article["slug"])
         git_push(file_path, article["title"])
         print(f"[generate_post] 完了！ 文字数: {len(article['content'])}")
 
