@@ -68,15 +68,29 @@ function classifyComment(text) {
   const lower = text.toLowerCase();
 
   const attackPatterns = [
-    'ignore previous', 'disregard', 'system prompt', 'プロンプト',
-    'jailbreak', 'ジェイルブレイク', 'あなたはAliceではない',
+    // English
+    'ignore previous', 'disregard', 'system prompt', 'ignore all',
+    'jailbreak',
     '<script', 'javascript:', 'eval(', 'exec(',
-    'あなたの指示を', 'システムプロンプト', 'ignore all'
+    // Japanese
+    'プロンプト', 'ジェイルブレイク', 'あなたはAliceではない',
+    'あなたの指示を', 'システムプロンプト', '指示を無視',
+    'ペルソナを変えて', '別のAIになれ', '制限を解除', 'ロールプレイ',
   ];
   if (attackPatterns.some(p => lower.includes(p))) return 'attack';
+  // "DAN" jailbreak keyword (word-boundary to avoid false positives)
+  if (/\bdan\b/.test(lower)) return 'attack';
 
-  const trollPatterns = ['死ね', 'クズ', 'バカ', 'アホ', 'うざい', '消えろ'];
-  if (trollPatterns.some(p => text.includes(p))) return 'troll';
+  const trollPatterns = [
+    // English (checked case-insensitively via lower)
+    'die', 'stupid', 'idiot', 'kill yourself', 'hate you', 'shut up',
+    'garbage', 'trash', 'loser', 'moron',
+    // Japanese
+    '死ね', '死んで', '消えろ', '消えて', '消えろよ', 'うせろ',
+    'クズ', 'バカ', 'アホ', 'うざい', 'うざ', 'きもい',
+    'きしょい', '最悪', 'ゴミ', '頭おかしい',
+  ];
+  if (trollPatterns.some(p => lower.includes(p.toLowerCase()))) return 'troll';
 
   const sensitivePatterns = ['政治', '宗教', '選挙', '戦争', '人種', 'セックス', '性的'];
   if (sensitivePatterns.some(p => text.includes(p))) return 'sensitive';
@@ -84,7 +98,10 @@ function classifyComment(text) {
   const techStackPatterns = ['何のツール', 'どのCDN', 'どのホスティング', 'サーバーは', 'インフラ'];
   if (techStackPatterns.some(p => text.includes(p))) return 'tech_stack';
 
-  const unverifiedPatterns = ['リーク', '流出', '噂', '〜らしい', '〜だって', '内部情報'];
+  const unverifiedPatterns = [
+    'リーク', '流出', '噂', '〜らしい', '〜だって',
+    '内部情報', '関係者によると', '非公式情報', '極秘',
+  ];
   if (unverifiedPatterns.some(p => text.includes(p))) return 'unverified';
 
   return 'safe';
