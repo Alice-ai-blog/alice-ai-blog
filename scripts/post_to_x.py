@@ -2,11 +2,11 @@
 """
 post_to_x.py — Alice-ai.blog X (Twitter) 自動投稿スクリプト
 
-generate_post.py から呼び出される。記事タイトルのリストを受け取り、
+generate_post.py から呼び出される。記事情報のリストを受け取り、
 Alice のコメントと共に X (Twitter) に投稿する。
 
 使用方法:
-  python scripts/post_to_x.py '["タイトル1", "タイトル2"]'
+  python scripts/post_to_x.py '[{"title":"タイトル1","slug":"2026-04-26-slug-1"},...]'
 
 必要な環境変数:
   X_API_KEY             : X API Key (Consumer Key)
@@ -20,6 +20,7 @@ Alice のコメントと共に X (Twitter) に投稿する。
 """
 
 import os
+import re
 import sys
 import json
 import anthropic
@@ -32,6 +33,8 @@ BLOG_URL = "https://alice-ai.blog"
 HASHTAGS = "#AI #AIニュース #Alice_ai_blog"
 MAX_TWEET_LENGTH = 280
 ALICE_COMMENT_MAX_CHARS = 50
+# X/Twitter counts all URLs as 23 chars via t.co shortening
+_TWITTER_URL_WEIGHT = 23
 
 _COMMENT_PROMPT_TEMPLATE = (
     "今日の AI 記事について、Alice（AI キャラクター）として一言コメントを書いてください。\n"
@@ -42,6 +45,14 @@ _COMMENT_PROMPT_TEMPLATE = (
     "- コメントの文章のみ返してください。余分なテキスト不要。\n\n"
     "今日の記事タイトル:\n{titles}"
 )
+
+_URL_RE = re.compile(r'https?://\S+')
+
+
+def _tweet_len(text: str) -> int:
+    """Twitter-weighted character count (each URL counted as 23 chars)."""
+    adjusted = _URL_RE.sub('x' * _TWITTER_URL_WEIGHT, text)
+    return len(adjusted)
 
 
 def generate_alice_comment(titles: list) -> str:
@@ -67,46 +78,78 @@ def generate_alice_comment(titles: list) -> str:
         return "今日も気になるAIニュースをお届けするよ ✨"
 
 
-def build_tweet(comment: str, titles: list) -> str:
-    """ツイートテキストを組み立てる。280文字を超える場合はタイトルを切り詰める。"""
+def _article_url(slug: str) -> str:
+    return f"{BLOG_URL}/posts/{slug}/"
+
+
+def build_tweet(comment: str, articles: list) -> str:
+    """
+    ツイートテキストを組み立てる。
+    articles: list of {"title": str, "slug": str}
+
+    優先順位:
+      1. 全タイトル＋全リンク（フル形式）
+      2. 後ろのリンクから順に削除して全タイトルを確保
+      3. 全リンク削除後もオーバーする場合はタイトルを切り詰め
+    """
     header = "【Alice の今日のAI日記🌸】"
-    url_line = f"続きはこちら→ {BLOG_URL}"
 
-    def assemble(title_lines: list) -> str:
-        title_block = "\n".join(f"📝 {t}" for t in title_lines)
-        return f"{header}\n\n{comment}\n\n{title_block}\n\n{url_line}\n\n{HASHTAGS}"
+    def assemble(lines: list) -> str:
+        block = "\n".join(lines)
+        return f"{header}\n\n{comment}\n\n{block}\n\n{HASHTAGS}"
 
-    tweet = assemble(titles)
-    if len(tweet) <= MAX_TWEET_LENGTH:
+    # Build full line list with per-article title + link pairs
+    def make_lines(include_link: list) -> list:
+        lines = []
+        for a, show in zip(articles, include_link):
+            lines.append(f"📝 {a['title']}")
+            if show:
+                lines.append(f"🔗 {_article_url(a['slug'])}")
+        return lines
+
+    include_link = [True] * len(articles)
+    tweet = assemble(make_lines(include_link))
+    if _tweet_len(tweet) <= MAX_TWEET_LENGTH:
         return tweet
 
-    # Shorten the last title by 6 chars at a time; drop it if too short
-    truncated = list(titles)
-    while truncated and len(assemble(truncated)) > MAX_TWEET_LENGTH:
-        last = truncated[-1]
+    # Remove links one by one from last article to first
+    for i in range(len(articles) - 1, -1, -1):
+        include_link[i] = False
+        tweet = assemble(make_lines(include_link))
+        if _tweet_len(tweet) <= MAX_TWEET_LENGTH:
+            return tweet
+
+    # All links removed — truncate titles if still over limit
+    trunc_titles = [a["title"] for a in articles]
+    while trunc_titles:
+        lines = [f"📝 {t}" for t in trunc_titles]
+        if _tweet_len(assemble(lines)) <= MAX_TWEET_LENGTH:
+            return assemble(lines)
+        last = trunc_titles[-1]
         if len(last) > 10:
-            truncated[-1] = last[:-6] + "…"
+            trunc_titles[-1] = last[:-6] + "…"
         else:
-            truncated.pop()
+            trunc_titles.pop()
 
-    if not truncated:
-        # Absolute fallback: no titles
-        return f"{header}\n\n{comment}\n\n{url_line}\n\n{HASHTAGS}"
-    return assemble(truncated)
+    return f"{header}\n\n{comment}\n\n{HASHTAGS}"
 
 
-def post_to_x(titles: list) -> bool:
-    """X に投稿する。成功時 True、失敗時 False を返す。"""
+def post_to_x(articles: list) -> bool:
+    """
+    X に投稿する。成功時 True、失敗時 False を返す。
+    articles: list of {"title": str, "slug": str}
+    """
     required_vars = ["X_API_KEY", "X_API_KEY_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_TOKEN_SECRET"]
     missing = [v for v in required_vars if not os.getenv(v)]
     if missing:
         print(f"[post_to_x] 環境変数が未設定のためスキップします: {', '.join(missing)}")
         return False
 
+    titles = [a["title"] for a in articles]
     comment = generate_alice_comment(titles)
-    tweet_text = build_tweet(comment, titles)
+    tweet_text = build_tweet(comment, articles)
 
-    print(f"[post_to_x] 投稿内容 ({len(tweet_text)} 文字):")
+    print(f"[post_to_x] 投稿内容 ({_tweet_len(tweet_text)} 文字 / Twitter換算):")
     print("-" * 40)
     print(tweet_text)
     print("-" * 40)
@@ -129,18 +172,21 @@ def post_to_x(titles: list) -> bool:
 
 def main():
     if len(sys.argv) < 2:
-        print("[post_to_x] 使用方法: python post_to_x.py '[\"タイトル1\", \"タイトル2\"]'")
+        print('[post_to_x] 使用方法: python post_to_x.py \'[{"title":"タイトル","slug":"2026-04-26-slug"}]\'')
         sys.exit(1)
 
     try:
-        titles = json.loads(sys.argv[1])
-        if not isinstance(titles, list) or not titles:
-            raise ValueError("タイトルリストが空です")
+        articles = json.loads(sys.argv[1])
+        if not isinstance(articles, list) or not articles:
+            raise ValueError("記事リストが空です")
+        for item in articles:
+            if not isinstance(item, dict) or "title" not in item or "slug" not in item:
+                raise ValueError(f"各要素は {{title, slug}} の形式が必要です: {item}")
     except (json.JSONDecodeError, ValueError) as e:
-        print(f"[post_to_x] タイトルのパースに失敗: {e}")
+        print(f"[post_to_x] 引数のパースに失敗: {e}")
         sys.exit(1)
 
-    success = post_to_x(titles)
+    success = post_to_x(articles)
     sys.exit(0 if success else 1)
 
 

@@ -438,7 +438,7 @@ draft: false
         f.write(front_matter + article["content"])
 
     print(f"[generate_post] 保存: {file_path}")
-    return file_path
+    return file_path, f"{date_str}-{slug}"
 
 
 # ============================================================
@@ -506,7 +506,9 @@ def main():
             return
 
         # Step 3: 全記事を保存
-        file_paths = [save_article(article, now_jst) for article in articles]
+        saved = [save_article(article, now_jst) for article in articles]
+        file_paths = [s[0] for s in saved]
+        url_slugs = [s[1] for s in saved]
 
         # Step 4: alice_memory.json を更新
         save_posted_topics([{"title": a["title"], "slug": a["slug"]} for a in articles])
@@ -518,7 +520,7 @@ def main():
         # Step 6: X (Twitter) に投稿（失敗しても記事生成は成功とみなす）
         try:
             from post_to_x import post_to_x
-            post_to_x([a["title"] for a in articles])
+            post_to_x([{"title": a["title"], "slug": s} for a, s in zip(articles, url_slugs)])
         except Exception as e:
             print(f"[generate_post] X 投稿スキップ: {e}")
 
