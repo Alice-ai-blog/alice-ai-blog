@@ -3,7 +3,7 @@ name: Alice の毎日記事生成
 on:
   # 毎朝 8:00 JST = UTC 23:00（前日）
   schedule:
-    - cron: '0 23 * * *'
+    - cron: '5 23 * * *'
   
   # 手動実行（緊急時や初回テスト用）
   workflow_dispatch:
