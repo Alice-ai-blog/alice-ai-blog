@@ -24,7 +24,6 @@ import re
 import sys
 import json
 import anthropic
-import tweepy
 
 sys.path.insert(0, os.path.dirname(__file__))
 from config import CLAUDE_MODEL
@@ -135,21 +134,21 @@ def build_tweet(comment: str, articles: list) -> str:
     return f"{header}\n\n{comment}\n\n{HASHTAGS}"
 
 
-def post_to_x(articles: list):
+def post_to_x(articles: list) -> str:
     """
-    ツイート内容を生成してコンソールに出力する。X API への実際の投稿は無効化中。
+    ツイート内容を生成してコンソールに出力する。X API 投稿は無効化中。
     articles: list of {"title": str, "slug": str}
-    戻り値: tweet_text (str) — 失敗時は None
+    戻り値: tweet_text (str)
     """
     titles = [a["title"] for a in articles]
     comment = generate_alice_comment(titles)
     tweet_text = build_tweet(comment, articles)
 
-    print(f"[post_to_x] ツイート内容 ({_tweet_len(tweet_text)} 文字 / Twitter換算):")
-    print("-" * 40)
+    print("=" * 50)
+    print("📢 Today's X post (copy and paste manually):")
+    print("=" * 50)
     print(tweet_text)
-    print("-" * 40)
-    print("[post_to_x] X API 投稿は現在無効化中（data/today_tweet.txt に保存）")
+    print("=" * 50)
 
     return tweet_text
 
