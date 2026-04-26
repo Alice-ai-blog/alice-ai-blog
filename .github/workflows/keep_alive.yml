@@ -1,0 +1,29 @@
+name: Keep Alive
+
+on:
+  # JST 7:55 = UTC 22:55 — runs just before the 8:00 article cron
+  schedule:
+    - cron: '55 22 * * *'
+
+  # Manual trigger for testing
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+
+      - name: 空コミットでリポジトリをアクティブに保つ
+        run: |
+          git config user.name "Alice-ai-bot"
+          git config user.email "alice@alice-ai.blog"
+          git commit --allow-empty -m "chore: keep-alive [skip ci]"
+          git push origin main
