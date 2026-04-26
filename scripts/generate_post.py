@@ -515,6 +515,13 @@ def main():
         git_push(file_paths, len(articles))
         print(f"[generate_post] 完了！ {len(articles)} 本の記事を投稿しました")
 
+        # Step 6: X (Twitter) に投稿（失敗しても記事生成は成功とみなす）
+        try:
+            from post_to_x import post_to_x
+            post_to_x([a["title"] for a in articles])
+        except Exception as e:
+            print(f"[generate_post] X 投稿スキップ: {e}")
+
     except Exception as e:
         print(f"[ERROR] 記事生成に失敗しました: {e}")
         sys.exit(1)
