@@ -444,11 +444,12 @@ draft: false
 # ============================================================
 # Git コミット＆プッシュ（全記事まとめて1コミット）
 # ============================================================
-def git_push(file_paths: list, article_count: int):
+def git_push(file_paths: list, article_count: int, extra_paths: list = None):
     try:
         subprocess.run(["git", "config", "user.name", "Alice-ai-bot"], check=True)
         subprocess.run(["git", "config", "user.email", "alice@alice-ai.blog"], check=True)
-        subprocess.run(["git", "add"] + file_paths + ["data/alice_memory.json"], check=True)
+        all_paths = file_paths + ["data/alice_memory.json"] + (extra_paths or [])
+        subprocess.run(["git", "add"] + all_paths, check=True)
         subprocess.run(
             ["git", "commit", "-m", f"Alice の今日の記事 {article_count} 本"],
             check=True
@@ -513,16 +514,23 @@ def main():
         # Step 4: alice_memory.json を更新
         save_posted_topics([{"title": a["title"], "slug": a["slug"]} for a in articles])
 
-        # Step 5: 全ファイルをまとめて1コミットでプッシュ
-        git_push(file_paths, len(articles))
-        print(f"[generate_post] 完了！ {len(articles)} 本の記事を投稿しました")
-
-        # Step 6: X (Twitter) に投稿（失敗しても記事生成は成功とみなす）
+        # Step 5: ツイート内容を生成して data/today_tweet.txt に保存
+        TWEET_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'today_tweet.txt')
+        tweet_extra = []
         try:
             from post_to_x import post_to_x
-            post_to_x([{"title": a["title"], "slug": s} for a, s in zip(articles, url_slugs)])
+            tweet_text = post_to_x([{"title": a["title"], "slug": s} for a, s in zip(articles, url_slugs)])
+            if tweet_text:
+                with open(TWEET_FILE, "w", encoding="utf-8") as f:
+                    f.write(tweet_text)
+                tweet_extra = ["data/today_tweet.txt"]
+                print("[generate_post] ツイート内容を data/today_tweet.txt に保存しました")
         except Exception as e:
-            print(f"[generate_post] X 投稿スキップ: {e}")
+            print(f"[generate_post] ツイート生成スキップ: {e}")
+
+        # Step 6: 全ファイルをまとめて1コミットでプッシュ
+        git_push(file_paths, len(articles), extra_paths=tweet_extra)
+        print(f"[generate_post] 完了！ {len(articles)} 本の記事を投稿しました")
 
     except Exception as e:
         print(f"[ERROR] 記事生成に失敗しました: {e}")

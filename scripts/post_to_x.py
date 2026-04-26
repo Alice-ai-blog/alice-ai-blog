@@ -135,40 +135,23 @@ def build_tweet(comment: str, articles: list) -> str:
     return f"{header}\n\n{comment}\n\n{HASHTAGS}"
 
 
-def post_to_x(articles: list) -> bool:
+def post_to_x(articles: list):
     """
-    X に投稿する。成功時 True、失敗時 False を返す。
+    ツイート内容を生成してコンソールに出力する。X API への実際の投稿は無効化中。
     articles: list of {"title": str, "slug": str}
+    戻り値: tweet_text (str) — 失敗時は None
     """
-    required_vars = ["X_API_KEY", "X_API_KEY_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_TOKEN_SECRET"]
-    missing = [v for v in required_vars if not os.getenv(v)]
-    if missing:
-        print(f"[post_to_x] 環境変数が未設定のためスキップします: {', '.join(missing)}")
-        return False
-
     titles = [a["title"] for a in articles]
     comment = generate_alice_comment(titles)
     tweet_text = build_tweet(comment, articles)
 
-    print(f"[post_to_x] 投稿内容 ({_tweet_len(tweet_text)} 文字 / Twitter換算):")
+    print(f"[post_to_x] ツイート内容 ({_tweet_len(tweet_text)} 文字 / Twitter換算):")
     print("-" * 40)
     print(tweet_text)
     print("-" * 40)
+    print("[post_to_x] X API 投稿は現在無効化中（data/today_tweet.txt に保存）")
 
-    try:
-        client = tweepy.Client(
-            consumer_key=os.environ["X_API_KEY"],
-            consumer_secret=os.environ["X_API_KEY_SECRET"],
-            access_token=os.environ["X_ACCESS_TOKEN"],
-            access_token_secret=os.environ["X_ACCESS_TOKEN_SECRET"],
-        )
-        response = client.create_tweet(text=tweet_text)
-        tweet_id = response.data["id"]
-        print(f"[post_to_x] X への投稿が完了しました (ID: {tweet_id})")
-        return True
-    except tweepy.TweepyException as e:
-        print(f"[post_to_x] X 投稿エラー: {e}")
-        return False
+    return tweet_text
 
 
 def main():
